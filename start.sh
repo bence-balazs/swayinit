@@ -188,6 +188,7 @@ case "$1" in
         echo "starting initial setup..."
         echo -n "Enter username to add groups(docker,kvm,libvirt): "
         read LOCAL_USERNAME
+        remove_snap
         relink_sh
         update_upgrade
         setup_sudoers
@@ -203,25 +204,16 @@ case "$1" in
         setup_virt
         install_bssh
         remove_unwanted_packages
+        setup_sway
+        alsa_audio
         systemctl reboot
         ;;
-    updatePackages)
-        echo "installing new packages..."
-        install_packages_for_sway
-        ;;  
     removeSnap)
         echo "removing snap..."
         remove_snap
         systemctl reboot
         ;;
-    setupSway)
-        echo -n "Enter username to setup Sway to: "
-        read LOCAL_USERNAME
-        setup_sway
-        alsa_audio
-        systemctl reboot
-        ;;
     *)
-        echo "Available commands: [initialSetup], [removeSnap], [setupSway], [updatePackage]"
+        echo "Available commands: [initialSetup], [removeSnap]"
         ;;
 esac
