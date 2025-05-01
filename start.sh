@@ -32,7 +32,7 @@ remove_snap() {
             echo "Removing $snap_package..."
             snap remove "$snap_package" || true
             sleep 2  # Adding a short delay to ensure the package is removed
-        done    
+        done
     echo "Waiting for Snap packages to be fully removed..."
     sleep 5
     done
