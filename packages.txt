@@ -10,7 +10,7 @@ galculator
 lm-sensors
 make
 mpv
-neofetch
+fastfetch
 nvtop
 ripgrep
 rofi
@@ -45,7 +45,6 @@ dmz-cursor-theme
 yaru-theme-icon
 yaru-theme-gtk
 gnupg
-software-properties-common
 ca-certificates
 xfce4-terminal
 virt-manager
@@ -61,3 +60,4 @@ pipewire-audio
 network-manager
 pulseaudio-utils
 vim
+thinkfan
