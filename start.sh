@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 PACKAGE_FILE=packages.txt
 
@@ -170,26 +170,22 @@ alsa_audio() {
 
 # Setup thinkfan
 setup_thinkfan() {
-    CONF_FILE="/etc/thinkfan.conf"
+    sudo tee /etc/thinkfan.conf > /dev/null <<'EOF'
+sensors:
+- tpacpi: /proc/acpi/ibm/thermal
+  indices: [0]
 
-    # Define the new config content
-    read -r -d '' CONF_CONTENT <<'EOF'
-    sensors:
-    - tpacpi: /proc/acpi/ibm/thermal
-        indices: [0]
+fans:
+- tpacpi: /proc/acpi/ibm/fan
 
-    fans:
-    - tpacpi: /proc/acpi/ibm/fan
-
-    levels:
-    - [0, 0,  5]
-    - [2, 3, 65]
-    - [5, 60, 66]
-    - [6, 63, 68]
-    - [7, 65, 74]
-    - [127, 70, 32767]
+levels:
+- [0, 0,  5]
+- [2, 3, 65]
+- [5, 60, 66]
+- [6, 63, 68]
+- [7, 65, 74]
+- [127, 70, 32767]
 EOF
-    echo "$CONF_CONTENT" | sudo tee "$CONF_FILE" > /dev/null
 }
 
 remove_unwanted_packages() {
