@@ -2,6 +2,7 @@ sudo
 git
 git-lfs
 curl
+htop
 bash-completion
 bat
 fd-find
