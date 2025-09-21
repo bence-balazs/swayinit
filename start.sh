@@ -205,7 +205,6 @@ case "$1" in
         read LOCAL_USERNAME
         relink_sh
         update_upgrade
-        setup_sudoers
         install_packages_for_sway
         install_firefox
         setup_vscode
@@ -220,6 +219,7 @@ case "$1" in
         setup_sway
         alsa_audio
         setup_thinkfan
+        setup_sudoers
         systemctl reboot
         ;;
     checkPackages)
