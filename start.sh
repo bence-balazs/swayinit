@@ -186,6 +186,8 @@ levels:
 - [7, 65, 74]
 - [127, 70, 32767]
 EOF
+
+    sudo systemctl enable thinkfan
 }
 
 remove_unwanted_packages() {
