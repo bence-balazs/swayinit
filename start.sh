@@ -1,7 +1,36 @@
 #!/bin/bash
 set -e
 
+PACKAGE_FILE=packages.txt
+
 source app-urls.env
+
+# check if packages available in debian repo
+check_packages() {
+    missing_packages=()  # Array to store missing packages
+
+    while read -r pkg || [ -n "$pkg" ]; do
+        # Skip empty lines and comments
+        [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
+
+        if apt-cache show "$pkg" > /dev/null 2>&1; then
+            echo "✅ $pkg exists in the repo"
+        else
+            echo "❌ $pkg NOT found in the repo"
+            missing_packages+=("$pkg")
+        fi
+    done < "$PACKAGE_FILE"
+
+    # Exit with error if any package is missing
+    if [ ${#missing_packages[@]} -ne 0 ]; then
+        echo
+        echo "Error: The following package(s) were NOT found in the repo:"
+        for pkg in "${missing_packages[@]}"; do
+            echo "  - $pkg"
+        done
+        exit 1
+    fi
+}
 
 # relink sh from dash to bash
 relink_sh() {
@@ -117,7 +146,7 @@ setup_virt() {
 install_packages_for_sway() {
     # install neccessary packages
     apt update
-    apt install -y $(cat packages.txt)
+    apt install -y $(cat ${PACKAGE_FILE})
     apt autoremove -y
 }
 
@@ -171,6 +200,7 @@ remove_unwanted_packages() {
 case "$1" in
     initialSetup)
         echo "starting initial setup..."
+        check_packages
         echo -n "Enter username to add groups(docker,kvm,libvirt): "
         read LOCAL_USERNAME
         relink_sh
@@ -192,7 +222,10 @@ case "$1" in
         setup_thinkfan
         systemctl reboot
         ;;
+    checkPackages)
+        check_packages
+        ;;
     *)
-        echo "Available commands: [initialSetup]"
+        echo "Available commands: [initialSetup], [checkPackages]"
         ;;
 esac
