@@ -189,6 +189,7 @@ setup_thinkfan() {
     - [7, 65, 74]
     - [127, 70, 32767]
 EOF
+    echo "$CONF_CONTENT" | sudo tee "$CONF_FILE" > /dev/null
 }
 
 remove_unwanted_packages() {
