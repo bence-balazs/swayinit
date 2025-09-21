@@ -99,7 +99,7 @@ setup_docker() {
     apt update
     apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    usermod -aG docker $LOCAL_USERNAME
+    sudo usermod -aG docker $LOCAL_USERNAME
 
     # set bash-completition for docker
     mkdir -p /etc/bash_completion.d
@@ -139,8 +139,8 @@ install_kubectl() {
 # setup virt-manager
 setup_virt() {
     systemctl enable libvirtd
-    adduser ${LOCAL_USERNAME} libvirt
-    adduser ${LOCAL_USERNAME} kvm
+    sudo adduser ${LOCAL_USERNAME} libvirt
+    sudo adduser ${LOCAL_USERNAME} kvm
 }
 
 install_packages_for_sway() {
