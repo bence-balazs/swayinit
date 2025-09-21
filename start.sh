@@ -19,39 +19,6 @@ setup_sudoers() {
     echo 'Defaults    timestamp_timeout=30' >> /etc/sudoers
 }
 
-# remove snap packages and snap service all together
-remove_snap() {
-    echo "Removing all Snap packages..."
-    # Get a list of all installed snap packages
-    local packages
-    packages=$(snap list | awk 'NR > 1 {print $1}')
-
-    # Loop through the list and remove each package
-    while snap list | awk 'NR > 1 {print $1}' | grep .; do
-        for snap_package in $packages; do
-            echo "Removing $snap_package..."
-            snap remove "$snap_package" || true
-            sleep 2  # Adding a short delay to ensure the package is removed
-        done
-    echo "Waiting for Snap packages to be fully removed..."
-    sleep 5
-    done
-
-    # remove snapd service
-    echo "Stopping and disabling snapd service..."
-    systemctl stop snapd || true
-    systemctl disable snapd || true
-    systemctl mask snapd || true
-    echo "Removing Snapd service..."
-    apt-get purge -y snapd || true
-
-    # create preference file to prevent snap to reinstalling itself
-    echo "Creating preference file to prevent Snap from being reinstalled..."
-    echo "Package: snapd" | tee /etc/apt/preferences.d/nosnap.pref > /dev/null
-    echo "Pin: release a=*" | tee -a /etc/apt/preferences.d/nosnap.pref > /dev/null
-    echo "Pin-Priority: -10" | tee -a /etc/apt/preferences.d/nosnap.pref > /dev/null
-}
-
 # install firefox
 install_firefox() {
     echo "Adding Mozilla's APT repository and installing Firefox..."
@@ -123,14 +90,6 @@ install_k9s() {
     rm -rf k9s*.deb
 }
 
-# install telegram
-install_telegram() {
-    wget ${TELEGRAM_URL}
-    tar xvpf tsetup*.tar.xz
-    mv Telegram/Telegram /usr/bin/
-    rm -rf Telegram tsetup*.tar.xz
-}
-
 # download bssh
 install_bssh() {
     wget https://github.com/bence-balazs/bssh/releases/download/1.0/bssh_glibc
@@ -164,7 +123,6 @@ setup_sway() {
     mkdir -p /home/${LOCAL_USERNAME}/scm/github.com
     mkdir -p /home/${LOCAL_USERNAME}/tmp
     mkdir -p /home/${LOCAL_USERNAME}/downloads/isos
-    mkdir -p /home/${LOCAL_USERNAME}/downloads/telegram
     mkdir -p /home/${LOCAL_USERNAME}/pictures/screenshots
     mkdir -p /home/${LOCAL_USERNAME}/sync
 
@@ -175,6 +133,29 @@ setup_sway() {
 alsa_audio() {
     touch /etc/modprobe.d/alsa-base.conf
     echo "options snd-hda-intel power_save=0 power_save_controller=N" > /etc/modprobe.d/alsa-base.conf
+}
+
+# Setup thinkfan
+setup_thinkfan() {
+    CONF_FILE="/etc/thinkfan.conf"
+
+    # Define the new config content
+    read -r -d '' CONF_CONTENT <<'EOF'
+    sensors:
+    - tpacpi: /proc/acpi/ibm/thermal
+        indices: [0]
+
+    fans:
+    - tpacpi: /proc/acpi/ibm/fan
+
+    levels:
+    - [0, 0,  5]
+    - [2, 3, 65]
+    - [5, 60, 66]
+    - [6, 63, 68]
+    - [7, 65, 74]
+    - [127, 70, 32767]
+EOF
 }
 
 remove_unwanted_packages() {
@@ -188,7 +169,6 @@ case "$1" in
         echo "starting initial setup..."
         echo -n "Enter username to add groups(docker,kvm,libvirt): "
         read LOCAL_USERNAME
-        remove_snap
         relink_sh
         update_upgrade
         setup_sudoers
@@ -198,7 +178,6 @@ case "$1" in
         setup_terraform
         setup_docker
         install_k9s
-        install_telegram
         install_kubectl
         setup_golang
         setup_virt
@@ -206,14 +185,10 @@ case "$1" in
         remove_unwanted_packages
         setup_sway
         alsa_audio
-        systemctl reboot
-        ;;
-    removeSnap)
-        echo "removing snap..."
-        remove_snap
+        setup_thinkfan
         systemctl reboot
         ;;
     *)
-        echo "Available commands: [initialSetup], [removeSnap]"
+        echo "Available commands: [initialSetup]"
         ;;
 esac

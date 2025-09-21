@@ -1,3 +1,3 @@
 # swayinit
 
-sway init script for ubuntu server
+sway init script for debian13
