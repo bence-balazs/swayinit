@@ -45,7 +45,10 @@ update_upgrade() {
 
 # set sudo timeout
 setup_sudoers() {
+    # set sudo timeout
     echo 'Defaults    timestamp_timeout=30' >> /etc/sudoers
+    # add user to sudoers
+    echo '${LOCAL_USERNAME} ALL=(ALL:ALL) ALL' >> /etc/sudoers
 }
 
 # install firefox
