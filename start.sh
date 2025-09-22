@@ -14,9 +14,9 @@ check_packages() {
         [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
 
         if apt-cache show "$pkg" > /dev/null 2>&1; then
-            echo "✅ $pkg exists in the repo"
+            echo "[+] $pkg exists in the repo"
         else
-            echo "❌ $pkg NOT found in the repo"
+            echo "[-] $pkg NOT found in the repo"
             missing_packages+=("$pkg")
         fi
     done < "$PACKAGE_FILE"
