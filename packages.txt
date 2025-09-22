@@ -63,3 +63,4 @@ network-manager
 pulseaudio-utils
 vim
 thinkfan
+pavucontrol
