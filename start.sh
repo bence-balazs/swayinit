@@ -161,6 +161,7 @@ setup_sway() {
     mkdir -p /home/${LOCAL_USERNAME}/downloads/isos
     mkdir -p /home/${LOCAL_USERNAME}/pictures/screenshots
     mkdir -p /home/${LOCAL_USERNAME}/sync
+    mkdir -p /home/${LOCAL_USERNAME}/mnt
 
     cp -R .config /home/${LOCAL_USERNAME}/
     chown -R ${LOCAL_USERNAME}:${LOCAL_USERNAME} /home/${LOCAL_USERNAME}/

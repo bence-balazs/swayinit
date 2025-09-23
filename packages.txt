@@ -56,7 +56,6 @@ libvirt-clients
 bridge-utils
 grim
 xwayland
-alsa-utils
 keychain
 pipewire-audio
 network-manager
@@ -65,3 +64,4 @@ vim
 thinkfan
 pavucontrol
 viewnior
+notepadqq
