@@ -189,10 +189,10 @@ levels:
 - [7, 65, 74]
 - [127, 70, 32767]
 EOF
-    echo "options thinkpad_acpi fan_control=1" | sudo tee /etc/modprobe.d/thinkfan.conf
+    # echo "options thinkpad_acpi fan_control=1" | sudo tee /etc/modprobe.d/thinkfan.conf
     # sudo modprobe -r thinkpad_acpi
     # sudo modprobe thinkpad_acpi
-    # sudo systemctl enable thinkfan
+    sudo systemctl enable thinkfan
 }
 
 remove_unwanted_packages() {
