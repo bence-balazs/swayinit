@@ -65,3 +65,5 @@ thinkfan
 pavucontrol
 viewnior
 notepadqq
+jq
+thunar-archive-plugin
