@@ -184,13 +184,36 @@ alsa_audio() {
     echo "options snd-hda-intel power_save=0 power_save_controller=N" > /etc/modprobe.d/alsa-base.conf
 }
 
+# Setup thinkfan
+setup_thinkfan() {
+    sudo tee /etc/thinkfan.conf > /dev/null <<'EOF'
+sensors:
+- tpacpi: /proc/acpi/ibm/thermal
+  indices: [0]
+
+fans:
+- tpacpi: /proc/acpi/ibm/fan
+
+levels:
+- [0, 0,  5]
+- [1, 3, 65]
+- [5, 60, 66]
+- [6, 63, 68]
+- [7, 65, 74]
+- [127, 70, 32767]
+EOF
+    echo "options thinkpad_acpi fan_control=1" | sudo tee /etc/modprobe.d/thinkfan.conf
+    sudo modprobe -r thinkpad_acpi
+    sudo modprobe thinkpad_acpi
+    sudo systemctl enable thinkfan
+}
+
 # install options
 case "$1" in
     initialSetup)
         echo "starting initial setup..."
         echo -n "Enter username to add groups(docker,kvm,libvirt): "
         read LOCAL_USERNAME
-        remove_snap
         relink_sh
         update_upgrade
         setup_sudoers
@@ -205,6 +228,7 @@ case "$1" in
         setup_virt
         install_bssh
         alsa_audio
+        setup_thinkfan
         systemctl reboot
         ;;
     removeSnap)

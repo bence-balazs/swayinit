@@ -1,36 +1,10 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
-PACKAGE_FILE=packages.txt
-
-source app-urls.env
-
-# check if packages available in debian repo
-check_packages() {
-    missing_packages=()  # Array to store missing packages
-
-    while read -r pkg || [ -n "$pkg" ]; do
-        # Skip empty lines and comments
-        [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
-
-        if apt-cache show "$pkg" > /dev/null 2>&1; then
-            echo "[+] $pkg exists in the repo"
-        else
-            echo "[-] $pkg NOT found in the repo"
-            missing_packages+=("$pkg")
-        fi
-    done < "$PACKAGE_FILE"
-
-    # Exit with error if any package is missing
-    if [ ${#missing_packages[@]} -ne 0 ]; then
-        echo
-        echo "Error: The following package(s) were NOT found in the repo:"
-        for pkg in "${missing_packages[@]}"; do
-            echo "  - $pkg"
-        done
-        exit 1
-    fi
-}
+# app urls
+TERRAFORM_URL="https://releases.hashicorp.com/terraform/1.13.3/terraform_1.13.3_linux_amd64.zip"
+GOLANG_URL="https://go.dev/dl/go1.25.1.linux-amd64.tar.gz"
+K9S_URL="https://github.com/derailed/k9s/releases/download/v0.50.12/k9s_linux_amd64.deb"
 
 # relink sh from dash to bash
 relink_sh() {
@@ -49,18 +23,6 @@ setup_sudoers() {
     echo 'Defaults    timestamp_timeout=30' >> /etc/sudoers
     # add user to sudoers
     echo "${LOCAL_USERNAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
-}
-
-# install firefox
-install_firefox() {
-    echo "Adding Mozilla's APT repository and installing Firefox..."
-    install -d -m 0755 /etc/apt/keyrings
-    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | tee /etc/apt/sources.list.d/mozilla.list > /dev/null
-    echo "Package: *" | tee /etc/apt/preferences.d/mozilla > /dev/null
-    echo "Pin: origin packages.mozilla.org" | tee -a /etc/apt/preferences.d/mozilla > /dev/null
-    echo "Pin-Priority: 1000" | tee -a /etc/apt/preferences.d/mozilla > /dev/null
-    apt update && apt install -y firefox
 }
 
 # setup vscode repository and install it
@@ -146,31 +108,6 @@ setup_virt() {
     sudo adduser ${LOCAL_USERNAME} kvm
 }
 
-install_packages_for_sway() {
-    # install neccessary packages
-    apt update
-    apt install -y $(cat ${PACKAGE_FILE})
-    apt autoremove -y
-}
-
-# setup steps for sway
-setup_sway() {
-    mkdir -p /home/${LOCAL_USERNAME}/.ssh
-    mkdir -p /home/${LOCAL_USERNAME}/scm/github.com
-    mkdir -p /home/${LOCAL_USERNAME}/tmp
-    mkdir -p /home/${LOCAL_USERNAME}/downloads/isos
-    mkdir -p /home/${LOCAL_USERNAME}/pictures/screenshots
-    mkdir -p /home/${LOCAL_USERNAME}/sync
-
-    cp -R .config /home/${LOCAL_USERNAME}/
-    chown -R ${LOCAL_USERNAME}:${LOCAL_USERNAME} /home/${LOCAL_USERNAME}/
-}
-
-alsa_audio() {
-    touch /etc/modprobe.d/alsa-base.conf
-    echo "options snd-hda-intel power_save=0 power_save_controller=N" > /etc/modprobe.d/alsa-base.conf
-}
-
 # Setup thinkfan
 setup_thinkfan() {
     sudo tee /etc/thinkfan.conf > /dev/null <<'EOF'
@@ -189,47 +126,131 @@ levels:
 - [7, 65, 74]
 - [127, 70, 32767]
 EOF
-    echo "options thinkpad_acpi fan_control=1" | sudo tee /etc/modprobe.d/thinkfan.conf
-    sudo modprobe -r thinkpad_acpi
-    sudo modprobe thinkpad_acpi
+    # echo "options thinkpad_acpi fan_control=1" | sudo tee /etc/modprobe.d/thinkfan.conf
+    # sudo modprobe -r thinkpad_acpi
+    # sudo modprobe thinkpad_acpi
     sudo systemctl enable thinkfan
 }
 
-remove_unwanted_packages() {
-    apt remove -y foot
-    apt autoremove -y
+remove_bloat() {
+    # Update package list
+    sudo apt update
+
+    # Remove common bloatware apps
+    REMOVE_PACKAGES=(
+    libreoffice*
+    gnome-contacts
+    gnome-maps
+    gnome-music
+    gnome-clocks
+    gnome-characters
+    gnome-dictionary
+    gnome-font-viewer
+    gnome-logs
+    gnome-software
+    gnome-sound-recorder
+    gnome-terminal
+    gnome-tour
+    cheese
+    evolution
+    rhythmbox
+    simple-scan
+    transmission-gtk
+    totem
+    yelp
+    thunderbird
+    shotwell
+    aisleriot
+    five-or-more
+    four-in-a-row
+    hitori
+    iagno
+    lightsoff
+    quadrapassel
+    swell-foop
+    tali
+    )
+
+    # Remove them
+    sudo apt purge -y "${REMOVE_PACKAGES[@]}"
+
+    # Autoremove leftovers
+    sudo apt autoremove -y --purge
+
+    # Clean cache
+    sudo apt clean
 }
 
-# install options
-case "$1" in
-    initialSetup)
-        echo "starting initial setup..."
-        check_packages
-        echo -n "Enter username to add groups(docker,kvm,libvirt): "
-        read LOCAL_USERNAME
-        relink_sh
-        update_upgrade
-        install_packages_for_sway
-        install_firefox
-        setup_vscode
-        setup_terraform
-        setup_docker
-        install_k9s
-        install_kubectl
-        setup_golang
-        setup_virt
-        install_bssh
-        remove_unwanted_packages
-        setup_sway
-        alsa_audio
-        setup_thinkfan
-        setup_sudoers
-        systemctl reboot
-        ;;
-    checkPackages)
-        check_packages
-        ;;
-    *)
-        echo "Available commands: [initialSetup], [checkPackages]"
-        ;;
-esac
+install_packages() {
+    # Update package index
+    sudo apt update
+
+    # Define the list of packages you want
+    PACKAGES=(
+    fastfetch
+    xfce4-terminal
+    unzip
+    p7zip-full
+    vim
+    sudo
+    git
+    git-lfs
+    htop
+    bash-completion
+    bat
+    fd-find
+    ffmpeg
+    fzf
+    lm-sensors
+    make
+    nvtop
+    ripgrep
+    sqlite3
+    ansible
+    pwgen
+    tmux
+    tree
+    unzip
+    fonts-dejavu
+    fonts-dejavu-core
+    fonts-dejavu-extra
+    fonts-dejavu-web
+    fonts-firacode
+    fonts-font-awesome
+    fonts-noto-mono
+    fonts-cantarell
+    fonts-cascadia-code
+    gnupg
+    ca-certificates
+    virt-manager
+    qemu-system
+    thinkfan
+    gnome-tweaks
+    gnome-shell-extension-manager
+    )
+
+    # Install them
+    sudo apt install -y "${PACKAGES[@]}"
+
+    # Clean up
+    sudo apt autoremove -y
+    sudo apt clean
+}
+
+echo -n "Enter username to add groups(docker,kvm,libvirt): "
+read LOCAL_USERNAME
+relink_sh
+update_upgrade
+remove_bloat
+install_packages
+setup_vscode
+setup_terraform
+setup_docker
+install_k9s
+install_kubectl
+setup_golang
+setup_virt
+install_bssh
+setup_thinkfan
+setup_sudoers
+systemctl reboot

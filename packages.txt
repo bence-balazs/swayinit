@@ -64,3 +64,4 @@ pulseaudio-utils
 vim
 thinkfan
 pavucontrol
+viewnior
