@@ -11,7 +11,7 @@ fzf
 lm-sensors
 make
 mpv
-fastfetch
+neofetch
 ripgrep
 sqlite3
 ansible
@@ -38,3 +38,5 @@ libvirt-clients
 bridge-utils
 vim
 thinkfan
+gnome-shell-extensions
+gnome-tweaks

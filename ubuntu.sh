@@ -212,6 +212,7 @@ EOF
 case "$1" in
     initialSetup)
         echo "starting initial setup..."
+        check_packages
         echo -n "Enter username to add groups(docker,kvm,libvirt): "
         read LOCAL_USERNAME
         relink_sh
